@@ -6,6 +6,12 @@ from telegram.ext import CallbackContext, Updater, CommandHandler
 from tabulate import tabulate
 from datetime import datetime
 
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+
+SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+
 class Bot():
     def __init__(self) -> None:
         logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -179,6 +185,29 @@ class Bot():
             logging.warn('Outcome record empty.')
             update.message.reply_text('Your outcome record is empty.')
 
+    def cmd_gsheet(self, update: Update, context: CallbackContext):
+        self._log_command(update)
+
+        flow = InstalledAppFlow.from_client_secrets_file('cred-desktop.json', SCOPES)
+        creds = flow.run_local_server(open_browser=False)
+
+        # try:
+        #     service = build('sheets', 'v4', credentials=creds)
+
+        #     sheet = service.spreadsheets()
+        #     template = {
+        #         'properties': {
+        #             'title': 'Monte Bot Test'
+        #         }
+        #     }
+        #     crsheet = sheet.create(body=template, fields='spreadsheetId').execute()
+        #     print('Spreadsheet ID: {0}'.format(crsheet.get('spreadsheetId')))
+
+
+        # except HttpError as err:
+        #     print(err)
+
+
     def build(self):
         logging.info('Building bot...')
         start_handler = CommandHandler('start', self.cmd_start)        
@@ -186,7 +215,8 @@ class Bot():
         income_handler = CommandHandler('income', self.cmd_income)
         outcome_handler = CommandHandler('outcome', self.cmd_outcome)        
         getincome_handler = CommandHandler('getincome', self.cmd_get_income)
-        getoutcome_handler = CommandHandler('getoutcome', self.cmd_get_outcome)        
+        getoutcome_handler = CommandHandler('getoutcome', self.cmd_get_outcome)  
+        gsheet_handler = CommandHandler('gsheet', self.cmd_gsheet)      
         
         logging.info('Adding dispatchers...')
         self.dispatcher.add_handler(start_handler)
